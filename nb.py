@@ -4,10 +4,13 @@ import numpy as np
 import pandas as pd
 from collections import defaultdict
 
+#Regular exp for punctuations
 punctuation = r"[\"\#\$\%\&\\'\(\)\*\+,\-/:<=>@\[\\\]\^_\{\|\}\~]"
 
+#Regular exp to tokenize the sentence
 sentence_tokenizer = r"[\.\?!;\s+]"
 
+#List of stop words
 stop_words = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", "yours", "yourself",
               "yourselves", "he", "him", "his", "himself", "she", "her", "hers", "herself", "it", "its", "itself",
               "they", "them", "their", "theirs", "themselves", "what", "which", "who", "whom", "this", "that", "these",
@@ -19,9 +22,11 @@ stop_words = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you"
               "few", "more", "most", "other", "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than",
               "too", "very", "s", "t", "can", "will", "just", "don", "should", "now"]
 
+#Default return value for defaultdict
 def def_value():
     return 0
-    
+
+#This method cleans the text.It convert all text to lower case,removes punctuation,tokenizes the sentences,filters stopwords
 def cleanup(df):
     df.text = df.text.str.lower()
     df.text = df.text.str.replace(punctuation, ' ')
@@ -29,6 +34,7 @@ def cleanup(df):
     df.text = df.text.apply(lambda x: [item for item in x if item not in stop_words])
     return df
 
+#A method that creates a vocuabulary of unique words
 def vocab(df):
     V = set()
     for element in df['text'].values:
@@ -36,6 +42,7 @@ def vocab(df):
             V.add(word)
     return V            
 
+#This method is used to get frequency of all words belonging to a particular class
 def wordcount(df):
     D = defaultdict(def_value)
     for i in df['text'].values:
@@ -46,6 +53,7 @@ def wordcount(df):
                 D[j] += 1    
     return D
 
+#This method trains the given data
 def train(df):
     N = df['text'].size
     
@@ -65,30 +73,36 @@ def train(df):
 
     prob_pos = {}
     prob_neg = {}
+
     for word in V:   
-        prob_pos[word] = np.log((D_POS[word]+1)/(Pos_size+N_V))
-        prob_neg[word] = np.log((D_NEG[word]+1)/(Neg_size+N_V))
+        prob_pos[word] = np.log((D_POS[word]+1) / (Pos_size+N_V))
+        prob_neg[word] = np.log((D_NEG[word]+1) / (Neg_size+N_V))
+	
     return (V, pri_pos_prob, pri_neg_prob, prob_pos, prob_neg)    
 
-def test_helper(line,V,pri_pos_prob, pri_neg_prob, prob_pos, prob_neg):
+#A helper for the test method
+def test_helper(line, V, pri_pos_prob, pri_neg_prob, prob_pos, prob_neg):
     test_pos = pri_pos_prob
     test_neg = pri_neg_prob
+	
     for word in line:
          if word in V:
              test_pos += prob_pos[word]
-             test_neg += prob_neg[word]        
+             test_neg += prob_neg[word]
+		
     if test_pos>test_neg:
         return '1'
     else:
         return '0'                 
 
-
+#This method tests the data
 def test(df, V, pri_pos_prob, pri_neg_prob, prob_pos, prob_neg):
     result = []
     for line in df['text'].values:
         result.append(test_helper(line,V, pri_pos_prob, pri_neg_prob, prob_pos, prob_neg))
     return result
 
+#Predicts the accuracy of classifier
 def accuracy_metric(actual, predicted):
 	correct = 0
 	for i in range(len(actual)):
@@ -97,7 +111,6 @@ def accuracy_metric(actual, predicted):
 	return correct / float(len(actual)) * 100.0      
 
 if __name__ == "__main__":
-    #pd.set_option('display.max_colwidth', 5000)
     df1 = pd.read_csv("Train.csv", dtype = 'string')
     df1_clean = cleanup(df1)
     train_data = train(df1_clean)
