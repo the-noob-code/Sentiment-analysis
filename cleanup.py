@@ -23,6 +23,7 @@ def def_value():
     return 0
 
 def cleanup(df):
+    print("Cleaning up the raw data ...")
     df.text = df.text.str.lower()
     df.text = df.text.str.replace(punctuation, ' ')
     df.text = df.text.str.split(sentence_tokenizer)

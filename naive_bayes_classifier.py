@@ -1,6 +1,7 @@
 from cleanup import *
 
 def train(df):
+    print("Training the classifier ...")
     N = df['text'].size
 
     V = vocab(df)
@@ -37,6 +38,7 @@ def test_helper(line,V,pri_pos_prob, pri_neg_prob, prob_pos, prob_neg):
         return '0'
 
 def test(df, V, pri_pos_prob, pri_neg_prob, prob_pos, prob_neg):
+    print("Predicting classes for input data ...")
     result = []
     for line in df['text'].values:
         result.append(test_helper(line,V, pri_pos_prob, pri_neg_prob, prob_pos, prob_neg))
